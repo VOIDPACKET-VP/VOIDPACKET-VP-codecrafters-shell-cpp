@@ -13,7 +13,7 @@ int main() {
 	  std::cout << "$ ";
 	  std::cin >> command;
 	  if (command == "exit") terminate = false;
-	  std::cout << command << ": command not found\n";
+	  else std::cout << command << ": command not found\n";
   }
 
 }
