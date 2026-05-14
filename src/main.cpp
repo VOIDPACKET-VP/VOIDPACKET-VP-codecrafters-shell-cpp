@@ -13,7 +13,7 @@ int main() {
 	  std::cout << "$ ";
 	  std::cin >> command;
 	  if (command == "exit") terminate = false;
-	  else if (command.starts_with("echo")) { 
+	  else if (command.find("echo") == 0) { 
 		  std::string toPrint = command.substr(4);
 		  std::cout << toPrint << "\n";
 	  }
