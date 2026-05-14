@@ -17,7 +17,7 @@ int main() {
 	  if (command == "exit") terminate = false;
 	  
 	  else if (command.find("echo ")) { 
-		  std::string toPrint = command.substr(4);
+		  std::string toPrint = command.substr(5);
 		  std::cout << toPrint << "\n";
 	  }
 	  
