@@ -11,13 +11,18 @@ int main() {
   while (terminate) {
 	  std::string command;
 	  std::cout << "$ ";
-	  std::cin >> command;
+	  
+	  if (!std::getline(std::cin, command)) break;
+
 	  if (command == "exit") terminate = false;
+	  
 	  else if (command.find("echo ")) { 
 		  std::string toPrint = command.substr(4);
 		  std::cout << toPrint << "\n";
 	  }
+	  
 	  else if (command == "echo") std::cout << "\n";
+	  
 	  else std::cout << command << ": command not found\n";
   }
 
