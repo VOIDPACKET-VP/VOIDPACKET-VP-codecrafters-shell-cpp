@@ -12,6 +12,7 @@ int main() {
 	  std::string command;
 	  std::cout << "$ ";
 	  std::cin >> command;
+	  if (command == "exit") terminate = false;
 	  std::cout << command << ": command not found\n";
   }
 
