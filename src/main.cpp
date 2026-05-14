@@ -14,9 +14,10 @@ int main() {
 	  std::cin >> command;
 	  if (command == "exit") terminate = false;
 	  else if (command.find("echo") == 0) { 
-		  std::string toPrint = command.substr(4);
+		  std::string toPrint = command.substr(5);
 		  std::cout << toPrint << "\n";
 	  }
+	  else if (command == "echo") std::cout << "\n";
 	  else std::cout << command << ": command not found\n";
   }
 
