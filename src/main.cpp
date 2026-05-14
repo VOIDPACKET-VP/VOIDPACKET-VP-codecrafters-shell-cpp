@@ -6,11 +6,13 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
-  std::string command;
+  bool terminate = true;
 
-  std::cout << "$ ";
-  std::cin >> command;
-
-  std::cout << command << ": command not found";
+  while (terminate) {
+	  std::string command;
+	  std::cout << "$ ";
+	  std::cin >> command;
+	  std::cout << command << ": command not found";
+  }
 
 }
