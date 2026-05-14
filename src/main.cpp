@@ -13,6 +13,10 @@ int main() {
 	  std::cout << "$ ";
 	  std::cin >> command;
 	  if (command == "exit") terminate = false;
+	  else if (command.starts_with("echo")) { 
+		  std::string toPrint = command.substr(4);
+		  std::cout << toPrint << "\n";
+	  }
 	  else std::cout << command << ": command not found\n";
   }
 
