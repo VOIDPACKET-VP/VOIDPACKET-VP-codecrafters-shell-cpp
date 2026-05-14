@@ -16,7 +16,7 @@ int main() {
 
 	  if (command == "exit") terminate = false;
 	  
-	  else if (command.find("echo ")) { 
+	  else if (command.find("echo ") == 0) { 
 		  std::string toPrint = command.substr(5);
 		  std::cout << toPrint << "\n";
 	  }
