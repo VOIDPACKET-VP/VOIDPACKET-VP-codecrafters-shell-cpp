@@ -57,25 +57,26 @@ int main() {
 				  }
 				  while (std::getline(stream, temp_part, delimiter)) {
 					  std::filesystem::path full_path = std::filesystem::path(temp_part) / toFind;  // the / is not divide, it's an operator of std::filesystem::path : it automatically handles inserting the correct directory separator (\ on Windows, / on Linux)
-					  
+
 					  /// Use std::filesystem::exists()
 					  std::filesystem::perms p = std::filesystem::status(full_path).permissions();
 					  bool isExecutable = ((p & std::filesystem::perms::owner_exec) != std::filesystem::perms::none) ||
-										  ((p & std::filesystem::perms::group_exec) != std::filesystem::perms::none) ||
-										  ((p & std::filesystem::perms::others_exec) != std::filesystem::perms::none);
+						  ((p & std::filesystem::perms::group_exec) != std::filesystem::perms::none) ||
+						  ((p & std::filesystem::perms::others_exec) != std::filesystem::perms::none);
 
 					  if (std::filesystem::exists(full_path)) {
 						  if (isWindows) {
 							  pathToFile = full_path.string();
 							  break;
-						  } else {
+						  }
+						  else {
 							  if (isExecutable) {
 								  pathToFile = full_path.string();
 								  break;
 							  }
 						  }
 					  }
-				  
+				  }
 				  if (!pathToFile.empty()) std::cout << toFind << " is " << pathToFile << "\n";
 				  else std::cout << toFind << ": not found" << "\n";
 			  } 
