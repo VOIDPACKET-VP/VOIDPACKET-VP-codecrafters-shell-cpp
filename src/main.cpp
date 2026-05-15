@@ -21,6 +21,9 @@ int main() {
   while (terminate) {
 	  std::string command;
 	  std::cout << "$ ";
+
+	  /// Get the paths (std::getenv)
+	  const char* path_value = std::getenv("PATH");
 	  
 	  if (!std::getline(std::cin, command)) break;
 
@@ -32,9 +35,7 @@ int main() {
 	  }
 	  
 	  else if (command == "echo") std::cout << "\n";
-
-	  /// Get the paths (std::getenv)
-	  const char* path_value = std::getenv("PATH");
+	  
 	  else if (command.find("type ") == 0) {
 		  std::string toFind = command.substr(5);
 		  
@@ -44,20 +45,20 @@ int main() {
 			  if (path_value) {
 				  
 				  /// Split them and append the wanted file at the 
-				  std::vector(std::string) results;
+				  std::vector<std::string> results;
 				  std::istringstream stream(path_value);
-				  std:string temp_part;
+				  std::string temp_part;
 				  constexpr char delimiter = path_list_delimiter(); // we stored it to avoid repeatedly calling it in the loop
 
 				  while (std::getline(stream, temp_part, delimiter)) {
-					  if (path_list_delimiter == ";") toFind += ".exe";
+					  if (*path_list_delimiter == ";") toFind += ".exe";
 					  results.push_back(temp_part + toFind);
 				  }
 
 				  /// Use std::filesystem::exists()
 				  std::string pathToFile;
 				  for (int i = 0; i < results.size(); i++) {
-					  if (std::filesystem:exists(results[i])) {
+					  if (std::filesystem::exists(results[i])) {
 						  pathToFile = results[i];
 						  break;
 					  }
