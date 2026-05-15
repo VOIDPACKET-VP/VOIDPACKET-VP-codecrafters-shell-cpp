@@ -56,7 +56,7 @@ int main() {
 					  std::filesystem::path full_path = std::filesystem::path(temp_part) / toFind;  // the / is not divide, it's an operator of std::filesystem::path : it automatically handles inserting the correct directory separator (\ on Windows, / on Linux)
 					  
 					  /// Use std::filesystem::exists()
-					  if (std::filesystem::exists(path_str)) {
+					  if (std::filesystem::exists(full_path)) {
 						  pathToFile = full_path.string();
 						  break;
 					  }
