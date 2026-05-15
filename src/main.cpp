@@ -75,12 +75,10 @@ int main() {
 							  }
 						  }
 					  }
-				  }
-
-				  std::cout << toFind << " is " << pathToFile << "\n";
+				  
+				  if (!pathToFile.empty()) std::cout << toFind << " is " << pathToFile << "\n";
+				  else std::cout << toFind << ": not found" << "\n";
 			  } 
-			  else std::cout << toFind << ": not found" << "\n";
-			  
 		  }
 	  }
 	  
