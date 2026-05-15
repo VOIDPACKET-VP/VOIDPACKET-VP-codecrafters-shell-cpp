@@ -51,7 +51,7 @@ int main() {
 				  constexpr char delimiter = path_list_delimiter(); // we stored it to avoid repeatedly calling it in the loop
 
 				  while (std::getline(stream, temp_part, delimiter)) {
-					  if (delimiter == ";") toFind += ".exe";
+					  if constexpr (delimiter == ";") toFind += ".exe";
 					  results.push_back(temp_part + toFind);
 				  }
 
