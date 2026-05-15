@@ -45,25 +45,24 @@ int main() {
 			  if (path_value) {
 				  
 				  /// Split them and append the wanted file at the 
-				  std::vector<std::string> results;
 				  std::istringstream stream(path_value);
 				  std::string temp_part;
 				  constexpr char delimiter = path_list_delimiter(); // we stored it to avoid repeatedly calling it in the loop
+				  std::string pathToFile;
+
+				  if constexpr (delimiter == ';') toFind += ".exe"; // windows executables must end with .exe
 
 				  while (std::getline(stream, temp_part, delimiter)) {
-					  if constexpr (delimiter == ';') toFind += ".exe";
-					  results.push_back(temp_part + toFind);
-				  }
-
-				  /// Use std::filesystem::exists()
-				  std::string pathToFile;
-				  for (int i = 0; i < results.size(); i++) {
-					  if (std::filesystem::exists(results[i])) {
-						  pathToFile = results[i];
+					  std::filesystem::path full_path = std::filesystem::path(temp_part) / toFind;  // the / is not divide, it's an operator of std::filesystem::path : it automatically handles inserting the correct directory separator (\ on Windows, / on Linux)
+					  
+					  /// Use std::filesystem::exists()
+					  if (std::filesystem::exists(path_str)) {
+						  pathToFile = full_path.string();
 						  break;
 					  }
 				  }
-				  std::cout << toFind << "is" << pathToFile << "\n";
+
+				  std::cout << toFind << " is " << pathToFile << "\n";
 			  } 
 			  else std::cout << toFind << ": not found" << "\n";
 			  
