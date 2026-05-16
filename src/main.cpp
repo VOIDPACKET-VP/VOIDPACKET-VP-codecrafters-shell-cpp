@@ -149,7 +149,11 @@ int main() {
 	  }
 
 	  // pwd command
-	  else if (command == "pwd") std::cout << std::filesystem::current_path() << "\n";
+	  else if (command == "pwd") {
+		  std::filesystem::path cwd_object = std::filesystem::current_path();
+		  std::string cwd_string = cwd_object.string();
+		  std::cout << cwd_string << "\n";
+	  }
 
 	  // External program option
 	  else {
