@@ -124,28 +124,31 @@ int main() {
 	  
 	  // exit command
 	  if (command == "exit") terminate = false;
-	  
+
 	  // echo command
-	  else if (command.find("echo ") == 0) { 
+	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
 		  if (!toPrint.empty()) std::cout << toPrint << "\n";
 		  else std::cout << "\n";
 	  }
-	  
+
 	  // type command
 	  else if (command.find("type ") == 0) {
 		  std::string toFind = command.substr(5);
-		  
+
 		  if (toFind == "echo" || toFind == "exit" || toFind == "type") {
 			  std::cout << toFind << " is a shell builtin" << "\n";
-		  } else {
+		  }
+		  else {
 			  if (path_value) {
 				  std::string pathToExecutable = find_executable(toFind, path_value).string();
 				  if (!pathToExecutable.empty()) std::cout << toFind << " is " << pathToExecutable << "\n";
 				  else std::cout << toFind << ": not found" << "\n";
-			  } 
+			  }
 		  }
 	  }
+
+	  else if (command == "pwd") std::cout << std::filesystem::current_path() << "\n";
 
 	  // External program option
 	  else {
