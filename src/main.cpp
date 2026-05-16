@@ -136,7 +136,7 @@ int main() {
 	  else if (command.find("type ") == 0) {
 		  std::string toFind = command.substr(5);
 
-		  if (toFind == "echo" || toFind == "exit" || toFind == "type") {
+		  if (toFind == "echo" || toFind == "exit" || toFind == "type" || toFind == "pwd") {
 			  std::cout << toFind << " is a shell builtin" << "\n";
 		  }
 		  else {
@@ -148,6 +148,7 @@ int main() {
 		  }
 	  }
 
+	  // pwd command
 	  else if (command == "pwd") std::cout << std::filesystem::current_path() << "\n";
 
 	  // External program option
