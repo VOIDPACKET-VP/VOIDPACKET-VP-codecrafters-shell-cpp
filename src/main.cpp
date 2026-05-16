@@ -45,7 +45,6 @@ void spawnProcess(const std::string& pathToExe, std::string& commandName) {
 	std::vector<char*> args;
 	for (auto& s : tokens) { args.push_back(s.data()); } // .data() gives us the raw char* pointer
 	args.push_back(nullptr); // execvp needs a NULL terminator
-	args[0] = const_cast<char*>(pathToExe.c_str());
 
 	pid_t pid = fork();
 	if (pid == 0) {
