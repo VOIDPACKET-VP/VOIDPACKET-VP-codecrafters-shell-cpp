@@ -155,6 +155,18 @@ int main() {
 		  std::cout << cwd_string << "\n";
 	  }
 
+	  // cd command
+	  else if (command.find("cd ") == 0) {
+		  std::string toGoTo = command.substr(3);
+		 
+		  std::filesystem::path newDir = toGoTo;
+		  bool newDirExists = std::filesystem::is_directory(newDir);
+
+		  if (newDirExists) std::filesystem::current_path(toGoTo);
+		  else std::cout << "cd: " << toGoTo << ": No such file or directory\n";
+
+	  }
+
 	  // External program option
 	  else {
 		  // Get the first word of the command : which is the executable
