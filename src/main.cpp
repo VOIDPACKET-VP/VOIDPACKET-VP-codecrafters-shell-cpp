@@ -170,8 +170,7 @@ int main() {
 
 		  // HOME Dir
 		  if (toGoTo == "~") {
-			  const char* homeDir = get_home_directory;
-			  std::filesystem::current_path(homeDir);
+			  std::filesystem::current_path(get_home_directory);
 		  } else { 
 			  // check if it exists
 			  bool newDirExists = std::filesystem::is_directory(newDir);
