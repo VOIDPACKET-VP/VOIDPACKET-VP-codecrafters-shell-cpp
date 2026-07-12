@@ -105,6 +105,11 @@ std::filesystem::path find_executable(const std::string& command_name, const cha
 }
 
 
+const char* get_home_directory() {
+	struct passwd* pw = getpwuid(getuid());
+	return (pw == nullptr ? nullptr : pw->pw_dir);
+}
+
 
 
 int main() {
@@ -165,7 +170,7 @@ int main() {
 
 		  // HOME Dir
 		  if (toGoTo == "~") {
-			  const char* homeDir = getpwuid(getuid())->pw_dir;
+			  const char* homeDir = get_home_directory;
 			  std::filesystem::current_path(homeDir);
 		  } else { 
 			  // check if it exists
