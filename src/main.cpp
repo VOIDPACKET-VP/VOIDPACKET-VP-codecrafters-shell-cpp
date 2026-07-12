@@ -113,6 +113,11 @@ int main() {
 
   bool terminate = true;
 
+
+  // HOME dir path for the cd command
+  std::filesystem::path homeDir = std::filesystem::current_path();
+
+
   while (terminate) {
 	  std::string command;
 	  std::cout << "$ ";
@@ -158,13 +163,22 @@ int main() {
 	  // cd command
 	  else if (command.find("cd ") == 0) {
 		  std::string toGoTo = command.substr(3);
-		 
+
+		  // Make it a path
 		  std::filesystem::path newDir = toGoTo;
-		  bool newDirExists = std::filesystem::is_directory(newDir);
 
-		  if (newDirExists) std::filesystem::current_path(toGoTo);
-		  else std::cout << "cd: " << toGoTo << ": No such file or directory\n";
+		  //
+		  if (toGoTo == '~') {
+			  std::filesystem::current_path(homeDir);
+		  }
+		  else {
+			  // check if it exists
+			  bool newDirExists = std::filesystem::is_directory(newDir);
 
+			  // execute the cd command
+			  if (newDirExists) std::filesystem::current_path(toGoTo);
+			  else std::cout << "cd: " << toGoTo << ": No such file or directory\n";
+		  }
 	  }
 
 	  // External program option
