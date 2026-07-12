@@ -168,7 +168,7 @@ int main() {
 		  std::filesystem::path newDir = toGoTo;
 
 		  //
-		  if (toGoTo == '~') {
+		  if (toGoTo == "~") {
 			  std::filesystem::current_path(homeDir);
 		  }
 		  else {
