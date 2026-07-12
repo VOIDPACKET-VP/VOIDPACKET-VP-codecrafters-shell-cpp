@@ -105,9 +105,21 @@ std::filesystem::path find_executable(const std::string& command_name, const cha
 }
 
 
-const char* get_home_directory() {
-	struct passwd* pw = getpwuid(getuid());
-	return (pw == nullptr ? nullptr : pw->pw_dir);
+
+
+// Get the HOME DIRECTORY based on the OS used
+std::filesystem::path get_home_dir() {
+	const char* homeDir = nullptr;
+#if defined(_WIN32)
+	homeDir = std::getenv("USERPROFILE");
+	/// FOR FUTURE VOIDPACKET : Add a Fallback for older or specific Windows setups
+#else 
+	homeDir = std::getenv("HOME");
+#endif
+	if (homeDir) return std::filesystem::path(homeDir);
+	
+	// return an empty path if nothing is found
+	return std::filesystem::path();
 }
 
 
@@ -122,6 +134,8 @@ int main() {
   while (terminate) {
 	  std::string command;
 	  std::cout << "$ ";
+
+	  std::filesystem::path homeDir = get_home_dir();
 
 	  /// Get the paths (std::getenv)
 	  const char* path_value = std::getenv("PATH");
@@ -170,7 +184,7 @@ int main() {
 
 		  // HOME Dir
 		  if (toGoTo == "~") {
-			  std::filesystem::current_path(get_home_directory);
+			  std::filesystem::current_path(homeDir);
 		  } else { 
 			  // check if it exists
 			  bool newDirExists = std::filesystem::is_directory(newDir);
