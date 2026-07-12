@@ -5,6 +5,7 @@
 #include <sstream> // for std::istringstream
 #include <vector>
 #include <stdlib.h>
+#include <pwd.h> // For HOME dir
 
 // For the processes : we need to know how to spawn on, differes between OS
 #if defined(_WIN32)
@@ -113,11 +114,6 @@ int main() {
 
   bool terminate = true;
 
-
-  // HOME dir path for the cd command
-  std::filesystem::path homeDir = std::filesystem::current_path();
-
-
   while (terminate) {
 	  std::string command;
 	  std::cout << "$ ";
@@ -167,11 +163,11 @@ int main() {
 		  // Make it a path
 		  std::filesystem::path newDir = toGoTo;
 
-		  //
+		  // HOME Dir
 		  if (toGoTo == "~") {
+			  const char* homeDir = getpwuid(getuid())->pw_dir;
 			  std::filesystem::current_path(homeDir);
-		  }
-		  else {
+		  } else { 
 			  // check if it exists
 			  bool newDirExists = std::filesystem::is_directory(newDir);
 
