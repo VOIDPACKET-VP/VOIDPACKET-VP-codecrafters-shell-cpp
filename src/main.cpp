@@ -5,7 +5,7 @@
 #include <sstream> // for std::istringstream
 #include <vector>
 #include <stdlib.h>
-#include <pwd.h> // For HOME dir
+
 
 // For the processes : we need to know how to spawn on, differes between OS
 #if defined(_WIN32)
@@ -14,7 +14,6 @@
 	#include <unistd.h>
 	#include <sys/wait.h>
 #endif
-
 
 
 void spawnProcess(const std::string& pathToExe, std::string& commandName) {
@@ -123,6 +122,47 @@ std::filesystem::path get_home_dir() {
 }
 
 
+/// Quoting
+// Single Quotes
+
+//void remove_consecutive_spaces(char* string)
+//{
+//	int length = strlen(string);
+//	int j = 0;
+//	bool last_char_not_space = true;
+//	for (int i = 0; i < length; i++)
+//	{
+//		if (string[i] != ' ' || last_char_not_space)
+//		{
+//			string[j] = string[i];
+//			j++;
+//		}
+//		if (string[i] == ' ') last_char_not_space = false;
+//		else last_char_not_space = true;
+//	}  
+//	string[j] = '\0';
+//}
+
+std::string handlSingleQuotes(std::string &toPrint) {
+	std::string finalPrint;
+	bool isInside = false;
+	for (int i = 0; i < toPrint.length; i++) {
+		// We check if we're inside or outside single quotes
+		if (toPrint[i] == '\'') {
+			isInside = !isInside;
+			continue;
+		}
+		else {
+			if (isInside) finalPrint += toPrint[i];
+			else {
+				if (toPrint[i] == " " && toPrint[i - 1] == " ") continue;
+			}
+		}
+	}
+	return finalPrint;
+}
+
+
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -148,6 +188,7 @@ int main() {
 	  // echo command
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
+		  toPrint = handlSingleQuotes(toPrint);
 		  if (!toPrint.empty()) std::cout << toPrint << "\n";
 		  else std::cout << "\n";
 	  }
