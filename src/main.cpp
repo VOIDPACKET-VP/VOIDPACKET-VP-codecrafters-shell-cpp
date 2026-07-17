@@ -146,7 +146,7 @@ std::filesystem::path get_home_dir() {
 std::string handlSingleQuotes(std::string &toPrint) {
 	std::string finalPrint;
 	bool isInside = false;
-	for (int i = 0; i < toPrint.length; i++) {
+	for (int i = 0; i < toPrint.length(); i++) {
 		// We check if we're inside or outside single quotes
 		if (toPrint[i] == '\'') {
 			isInside = !isInside;
@@ -155,7 +155,8 @@ std::string handlSingleQuotes(std::string &toPrint) {
 		else {
 			if (isInside) finalPrint += toPrint[i];
 			else {
-				if (toPrint[i] == " " && toPrint[i - 1] == " ") continue;
+				if (i > 0 && (toPrint[i] == ' ' && toPrint[i - 1] == ' ')) continue;
+				else finalPrint += toPrint[i];
 			}
 		}
 	}
