@@ -16,13 +16,24 @@
 #endif
 
 
-void spawnProcess(const std::string& pathToExe, std::string& commandName) {
+void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& arguments) {
 #if defined(_WIN32)
 	STARTUPINFO si = { sizeof(si) };
 	PROCESS_INFORMATION pi;
 
 	// Combine them into a single command line string with quotes around the path : to avoid the case where the path has spaces
-	std::string fullCommandPath = "\"" + pathToExe + "\" " + commandName;
+	std::string fullCommandPath = "\"" + pathToExe + "\"";
+
+	for (size_t i = 1; i < arguments.size(); ++i) {
+		fullCommandLine += " ";
+		// If the argument contains spaces, wrap it in quotes so Windows programs parse it as one argument
+		if (arguments[i].find(' ') != std::string::npos) {
+			fullCommandLine += "\"" + arguments[i] + "\"";
+		}
+		else {
+			fullCommandLine += arguments[i];
+		}
+	}
 
 	if (CreateProcessA(NULL, fullCommandPath.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) { // fullCommandLine.data() because it has to be a pointer : char*
 		// Tells our shell to wait till the program finishes then show that $ sign  
@@ -33,17 +44,12 @@ void spawnProcess(const std::string& pathToExe, std::string& commandName) {
 	}
 
 #else 
-	// In POSIX we have to split (tokenize) the string by spaces into an array of strings before passing it to execvp.
-	// We can do that by using good old std::istringstream
-	std::vector<std::string> tokens;
-	std::istringstream ss(commandName);
-	std::string temp;
-
-	while (ss >> temp) tokens.push_back(temp);
-
 	// we need to convert to a vector of raw char* for execvp
 	std::vector<char*> args;
-	for (auto& s : tokens) { args.push_back(s.data()); } // .data() gives us the raw char* pointer
+
+	// We use const_cast because execv expects char* instead of const char*,
+	// but it is safe because execv guarantees it won't mutate the data.
+	for (auto& s : arguments) { args.push_back(const_cast<char*>(s.data())); } // .data() gives us the raw char* pointer
 	args.push_back(nullptr); // execvp needs a NULL terminator
 
 	pid_t pid = fork();
@@ -234,18 +240,20 @@ int main() {
 
 	  // External program option
 	  else {
-		  // Get the first word of the command : which is the executable
-		  std::istringstream iss(command);
-		  std::string exe_name;
-		  iss >> exe_name;
+		  std::vector<std::string> args = handlSingleQuotes(command);
 		  
-		  // check if it exists
-		  std::string pathToExecutable = find_executable(exe_name, path_value).string();
+		  if (!args.empty()) {
+			  std::string exe_name = args[0];
 
-		  if (!pathToExecutable.empty()) {
-			  spawnProcess(pathToExecutable, command);
-		  } else {
-			  std::cout << exe_name << ": command not found\n";
+			  // check if it exists
+			  std::string pathToExecutable = find_executable(exe_name, path_value).string();
+
+			  if (!pathToExecutable.empty()) {
+				  spawnProcess(pathToExecutable, args);
+			  }
+			  else {
+				  std::cout << exe_name << ": command not found\n";
+			  }
 		  }
 
 	  }
