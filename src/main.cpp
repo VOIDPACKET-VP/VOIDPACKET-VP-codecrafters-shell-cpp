@@ -127,8 +127,6 @@ std::filesystem::path get_home_dir() {
 std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 	std::vector<std::string> arguments;
 	std::string currentArgument;
-
-
 	bool isInside = false;
 	for (int i = 0; i < toPrint.length(); i++) {
 		// We check if we're inside or outside single quotes
@@ -139,7 +137,7 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 		else {
 			if (isInside) currentArgument += toPrint[i];
 			else {
-				if (i > 0 && (toPrint[i] == ' ' && toPrint[i - 1] == ' ')) { 
+				if (toPrint[i] == ' ') { 
 					if (!currentArgument.empty()) {
 						arguments.push_back(currentArgument);
 						currentArgument.clear();
@@ -181,9 +179,14 @@ int main() {
 	  // echo command
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
-		  toPrint = handlSingleQuotes(toPrint);
-		  if (!toPrint.empty()) std::cout << toPrint << "\n";
-		  else std::cout << "\n";
+		  std::vector<std::string> arguments = handlSingleQuotes(toPrint);
+		  for (size_t i = 0; i < arguments.size(); i++) {
+			  std::cout << arguments[i];
+			  if (i < arguments.size() - 1) {
+				  std::cout << " ";
+			  }
+		  }
+		  std::cout << "\n";
 	  }
 
 	  // type command
