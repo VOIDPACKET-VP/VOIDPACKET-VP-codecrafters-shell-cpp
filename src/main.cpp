@@ -124,27 +124,11 @@ std::filesystem::path get_home_dir() {
 
 /// Quoting
 // Single Quotes
+std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
+	std::vector<std::string> arguments;
+	std::string currentArgument;
 
-//void remove_consecutive_spaces(char* string)
-//{
-//	int length = strlen(string);
-//	int j = 0;
-//	bool last_char_not_space = true;
-//	for (int i = 0; i < length; i++)
-//	{
-//		if (string[i] != ' ' || last_char_not_space)
-//		{
-//			string[j] = string[i];
-//			j++;
-//		}
-//		if (string[i] == ' ') last_char_not_space = false;
-//		else last_char_not_space = true;
-//	}  
-//	string[j] = '\0';
-//}
 
-std::string handlSingleQuotes(std::string &toPrint) {
-	std::string finalPrint;
 	bool isInside = false;
 	for (int i = 0; i < toPrint.length(); i++) {
 		// We check if we're inside or outside single quotes
@@ -153,15 +137,23 @@ std::string handlSingleQuotes(std::string &toPrint) {
 			continue;
 		}
 		else {
-			if (isInside) finalPrint += toPrint[i];
+			if (isInside) currentArgument += toPrint[i];
 			else {
-				if (i > 0 && (toPrint[i] == ' ' && toPrint[i - 1] == ' ')) continue;
-				else finalPrint += toPrint[i];
+				if (i > 0 && (toPrint[i] == ' ' && toPrint[i - 1] == ' ')) { 
+					if (!currentArgument.empty()) {
+						arguments.push_back(currentArgument);
+						currentArgument.clear();
+					}
+					else continue;
+				}
+				else currentArgument += toPrint[i];
 			}
 		}
 	}
-	return finalPrint;
+	if (!currentArgument.empty()) arguments.push_back(currentArgument);
+	return arguments;
 }
+// Double Quotes
 
 
 
