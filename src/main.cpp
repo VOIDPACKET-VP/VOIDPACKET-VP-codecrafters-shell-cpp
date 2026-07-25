@@ -156,9 +156,13 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 				}
 			}
 			else if (toPrint[i] == '\\') {
-				if (toPrint[i + 1] == '\\' && i < toPrint.length() - 1) currentArgument += toPrint[i + 1];
-				else if (toPrint[i + 1] == ' ' && i < toPrint.length() - 1) currentArgument += toPrint[i + 1];
-				else continue;
+				// Check bounds BEFORE looking ahead to prevent memory crashes
+				if (i + 1 < toPrint.length()) {
+					if (toPrint[i + 1] == '\\' || toPrint[i + 1] == ' ') {
+						currentArgument += toPrint[i + 1];
+						i += 2; // So that we pass the next character (the escaped one)
+					}
+				}
 			}
 			else currentArgument += toPrint[i];
 		}
