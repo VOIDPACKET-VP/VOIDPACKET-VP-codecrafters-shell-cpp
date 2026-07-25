@@ -145,6 +145,11 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 		}
 		else if (insideDoubleQuotes) {
 			if (toPrint[i] == '"') insideDoubleQuotes = false;
+
+			else if (toPrint[i] == '\\' && i + 1 < toPrint.length() && (toPrint[i + 1] == '"' || toPrint[i + 1] == '\\')) {
+				currentArgument += toPrint[i + 1];
+				i++; // Skip the escaped character
+			}
 			else currentArgument += toPrint[i];
 		}
 		else if (toPrint[i] == '\\') {
