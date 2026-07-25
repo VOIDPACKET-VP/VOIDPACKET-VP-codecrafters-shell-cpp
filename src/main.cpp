@@ -139,11 +139,11 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 
 		// if we are inside a single quote, double quotes are treated as normal text, and vice versa.
 		if (insideSingleQuotes) {
-			if (toPrint == '\'') insideSingleQuotes = false;
+			if (toPrint[i] == '\'') insideSingleQuotes = false;
 			else currentArgument += toPrint[i];
 		}
 		else if (insideDoubleQuotes) {
-			if (toPrint == '"') insideDoubleQuotes = false;
+			if (toPrint[i] == '"') insideDoubleQuotes = false;
 			else currentArgument += toPrint[i];
 		}
 		else {
