@@ -150,17 +150,8 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 		else if (toPrint[i] == '\\') {
 			// Check bounds BEFORE looking ahead to prevent memory crashes
 			if (i + 1 < toPrint.length()) {
-				if (toPrint[i + 1] == '"') {
-					insideSingleQuotes = true;
-					insideDoubleQuotes = false;
-				}
-				else if (toPrint[i + 1] == '\'') {
-					insideSingleQuotes = false;
-					insideDoubleQuotes = true;
-				}
-
 				currentArgument += toPrint[i + 1];
-				i += 2; // So that we pass the next character (the escaped one)
+				i++; // So that we pass the next character (the escaped one)
 			}
 		}
 		else {
