@@ -135,7 +135,7 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 	std::string currentArgument;
 	bool insideSingleQuotes = false;
 	bool insideDoubleQuotes = false;
-	bool toBeEscaped = false;
+
 	for (int i = 0; i < toPrint.length(); i++) {
 
 		// if we are inside a single quote, double quotes are treated as normal text, and vice versa.
@@ -150,10 +150,11 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 		else if (toPrint[i] == '\\') {
 			// Check bounds BEFORE looking ahead to prevent memory crashes
 			if (i + 1 < toPrint.length()) {
-				if (toPrint[i + 1] == '\\' || toPrint[i + 1] == ' ') {
-					currentArgument += toPrint[i + 1];
-					i += 2; // So that we pass the next character (the escaped one)
-				}
+				if (toPrint[i + 1] == '"') insideDoubleQuotes = false;
+				else if (toPrint[i + 1] == '\'') insideSingleQuotes = false;
+
+				currentArgument += toPrint[i + 1];
+				i += 2; // So that we pass the next character (the escaped one)
 			}
 		}
 		else {
