@@ -155,6 +155,10 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 					currentArgument.clear();
 				}
 			}
+			else if (toPrint[i] == '\\') {
+				if (toPrint[i + 1] == '\\' && i < toPrint.length() - 1) currentArgument += '\\';
+				else continue;
+			}
 			else currentArgument += toPrint[i];
 		}
 	}
