@@ -61,7 +61,7 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 	} else if (pid > 0) {
 		wait(nullptr);
 	} else {
-		std::perror("Fork failed");
+		std::perror("0-Fork failed");
 	}
 #endif
 }
