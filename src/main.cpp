@@ -133,32 +133,34 @@ std::filesystem::path get_home_dir() {
 std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 	std::vector<std::string> arguments;
 	std::string currentArgument;
-	bool isInside = false;
+	bool insideSingleQuotes = false;
+	bool insideDoubleQuotes = false;
 	for (int i = 0; i < toPrint.length(); i++) {
-		// We check if we're inside or outside single quotes
-		if (toPrint[i] == '\'') {
-			isInside = !isInside;
-			continue;
+
+		// if we are inside a single quote, double quotes are treated as normal text, and vice versa.
+		if (insideSingleQuotes) {
+			if (toPrint == '\'') insideSingleQuotes = false;
+			else currentArgument += toPrint[i];
+		}
+		else if (insideDoubleQuotes) {
+			if (toPrint == '"') insideDoubleQuotes = false;
+			else currentArgument += toPrint[i];
 		}
 		else {
-			if (isInside) currentArgument += toPrint[i];
-			else {
-				if (toPrint[i] == ' ') { 
-					if (!currentArgument.empty()) {
-						arguments.push_back(currentArgument);
-						currentArgument.clear();
-					}
-					else continue;
+			if (toPrint[i] == '\'') insideSingleQuotes = true;
+			else if (toPrint[i] == '"') insideDoubleQuotes = true;
+			else if (toPrint[i] == ' ') {
+				if (!currentArgument.empty()) {
+					arguments.push_back(currentArgument);
+					currentArgument.clear();
 				}
-				else currentArgument += toPrint[i];
 			}
+			else currentArgument += toPrint[i];
 		}
 	}
 	if (!currentArgument.empty()) arguments.push_back(currentArgument);
 	return arguments;
 }
-// Double Quotes
-
 
 
 int main() {
