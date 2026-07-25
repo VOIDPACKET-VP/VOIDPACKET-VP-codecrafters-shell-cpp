@@ -156,7 +156,8 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 				}
 			}
 			else if (toPrint[i] == '\\') {
-				if (toPrint[i + 1] == '\\' && i < toPrint.length() - 1) currentArgument += '\\';
+				if (toPrint[i + 1] == '\\' && i < toPrint.length() - 1) currentArgument += toPrint[i + 1];
+				else if (toPrint[i + 1] == ' ' && i < toPrint.length() - 1) currentArgument += toPrint[i + 1];
 				else continue;
 			}
 			else currentArgument += toPrint[i];
