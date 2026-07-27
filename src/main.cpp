@@ -247,15 +247,17 @@ int main() {
 
 			  redirect_output(redirectLocation, toRedirect);
 		  }
-
-		  std::vector<std::string> arguments = handlQuotes(toRedirect);
-		  for (size_t i = 0; i < arguments.size(); i++) {
-			  std::cout << arguments[i];
-			  if (i < arguments.size() - 1) {
-				  std::cout << " ";
+		  else {
+			  std::vector<std::string> arguments = handlQuotes(toRedirect);
+			  for (size_t i = 0; i < arguments.size(); i++) {
+				  std::cout << arguments[i];
+				  if (i < arguments.size() - 1) {
+					  std::cout << " ";
+				  }
 			  }
+			  std::cout << "\n";
 		  }
-		  std::cout << "\n";
+		  
 	  }
 
 	  // type command
