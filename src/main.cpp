@@ -223,27 +223,13 @@ int main() {
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
 
-		  std::string toRedirect;
-		  std::string redirectLocation;
-		  int startOfRedirLocation = 0;
+		  size_t redirPos = toPrint.find('>');
 
-		  // Get the string
-		  for (int i = 0; i < toPrint.length(); i++) {
-			  if (i + 1 < toPrint.length()) {
-				  if (toPrint[i] == ' ' && toPrint[i + 1] == '>') {
-					  startOfRedirLocation = i + 2;
-					  break;
-				  }
-			  }
-			  toRedirect += toPrint[i];
-		  }
-
-		  // if it's 0 then we didn't find the > operator and so we do things as normal
-		  if (startOfRedirLocation > 0) {
-			  // Get the location to redirect the string to
-			  for (int i = startOfRedirLocation; i < toPrint.length(); i++) {
-				  redirectLocation += toPrint[i];
-			  }
+		  if (redirPos != std::string::npos) {
+			  // what to redirect
+			  std::string toRedirect = toPrint.substr(0, redirPos);
+			  // where to redirect
+			  std::string redirectLocation = toPrint.substr(redirPos + 1);
 
 			  redirect_output(redirectLocation, toRedirect);
 		  }
