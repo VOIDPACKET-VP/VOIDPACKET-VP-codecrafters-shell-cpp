@@ -231,6 +231,23 @@ int main() {
 			  // where to redirect
 			  std::string redirectLocation = toPrint.substr(redirPos + 1);
 
+			  // 2. Clean up leading/trailing spaces from the text
+			  if (!toRedirect.empty() && toRedirect.back() == ' ') {
+				  toRedirect.pop_back();
+			  }
+
+			  // 3. Clean up spaces from the filename path
+			  // Remove leading spaces
+			  size_t firstNonSpace = redirectLocation.find_first_not_of(" ");
+			  if (firstNonSpace != std::string::npos) {
+				  redirectLocation = redirectLocation.substr(firstNonSpace);
+			  }
+			  // Remove trailing spaces
+			  size_t lastNonSpace = redirectLocation.find_last_not_of(" ");
+			  if (lastNonSpace != std::string::npos) {
+				  redirectLocation = redirectLocation.substr(0, lastNonSpace + 1);
+			  }
+
 			  redirect_output(redirectLocation, toRedirect);
 		  }
 		  else {
