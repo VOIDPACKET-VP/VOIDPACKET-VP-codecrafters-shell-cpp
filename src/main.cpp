@@ -234,7 +234,7 @@ int main() {
 			  redirect_output(redirectLocation, toRedirect);
 		  }
 		  else {
-			  std::vector<std::string> arguments = handlQuotes(toRedirect);
+			  std::vector<std::string> arguments = handlQuotes(toPrint);
 			  for (size_t i = 0; i < arguments.size(); i++) {
 				  std::cout << arguments[i];
 				  if (i < arguments.size() - 1) {
