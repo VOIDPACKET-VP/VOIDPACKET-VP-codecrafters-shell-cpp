@@ -6,6 +6,12 @@
 #include <vector>
 #include <stdlib.h>
 
+/// For Redirection section
+#include <fstream> 
+#include <cerrno>  // Required for errno
+#include <cstring> // Required for std::strerror
+
+
 
 // For the processes : we need to know how to spawn on, differes between OS
 #if defined(_WIN32)
@@ -22,7 +28,7 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 	PROCESS_INFORMATION pi;
 
 	// Combine them into a single command line string with quotes around the path : to avoid the case where the path has spaces
-	std::string fullCommandPath = "\"" + pathToExe + "\"";
+	std::string fullCommandLine = "\"" + pathToExe + "\"";
 
 	for (size_t i = 1; i < arguments.size(); ++i) {
 		fullCommandLine += " ";
@@ -35,7 +41,10 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 		}
 	}
 
-	if (CreateProcessA(NULL, fullCommandPath.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) { // fullCommandLine.data() because it has to be a pointer : char*
+	std::vector<char> commandLineBuffer(fullCommandLine.begin(), fullCommandLine.end());
+	commandLineBuffer.push_back('\0'); // Always ensure Win32 strings have a null terminator
+
+	if (CreateProcessA(NULL, CommandLineBuffer.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) { // fullCommandLine.data() because it has to be a pointer : char*
 		// Tells our shell to wait till the program finishes then show that $ sign  
 		WaitForSingleObject(pi.hProcess, INFINITE);
 
@@ -82,14 +91,14 @@ std::filesystem::path find_executable(const std::string& command_name, const cha
 
 	std::string target = command_name; // because we declared it as a const in the function params
 	if constexpr (delimiter == ';') {
-		target += ".exe"; // windows executables must end with .exe
 		isWindows = true;
+		target += ".exe"; // windows executables must end with .exe
 	}
 	while (std::getline(stream, temp_part, delimiter)) {
 		std::filesystem::path full_path = std::filesystem::path(temp_part) / target;  // the / is not divide, it's an operator of std::filesystem::path : it automatically handles inserting the correct directory separator (\ on Windows, / on Linux)
 		
 		// we get the exact path to the executable
-		if (std::filesystem::exists(full_path)) {
+		if (std::filesystem::is_regular_file(full_path)) {
 			if (isWindows) {
 				pathToFile = full_path;
 				break;
@@ -129,8 +138,7 @@ std::filesystem::path get_home_dir() {
 
 
 /// Quoting
-// Single Quotes
-std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
+std::vector<std::string> handlQuotes(std::string &toPrint) {
 	std::vector<std::string> arguments;
 	std::string currentArgument;
 	bool insideSingleQuotes = false;
@@ -175,6 +183,20 @@ std::vector<std::string> handlSingleQuotes(std::string &toPrint) {
 	return arguments;
 }
 
+/// Redirection
+void redirect_output(const std::string& fileName, const std::string& text) {
+	std::ofstream outFile(fileName, std::ios::out);
+
+	if (outFile.is_open()) {
+		outFile << text << "\n";
+		outFile.close();
+	}
+	else {
+		std::cerr << "shell: " << fileName << ": " << std::strerror(errno) << std::endl;
+	}
+}
+
+
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -200,7 +222,33 @@ int main() {
 	  // echo command
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
-		  std::vector<std::string> arguments = handlSingleQuotes(toPrint);
+
+		  std::string toRedirect;
+		  std::string redirectLocation;
+		  int startOfRedirLocation = 0;
+
+		  // Get the string
+		  for (int i = 0; i < toPrint.length(); i++) {
+			  if (i + 1 < toPrint.length()) {
+				  if (toPrint[i] == ' ' && toPrint[i + 1] == '>') {
+					  startOfRedirLocation = i + 2;
+					  break;
+				  }
+			  }
+			  toRedirect += toPrint[i];
+		  }
+
+		  // if it's 0 then we didn't find the > operator and so we do things as normal
+		  if (startOfRedirLocation > 0) {
+			  // Get the location to redirect the string to
+			  for (int i = startOfRedirLocation; i < toPrint.length(); i++) {
+				  redirectLocation += toPrint[i];
+			  }
+
+			  redirect_output(redirectLocation, toRedirect);
+		  }
+
+		  std::vector<std::string> arguments = handlQuotes(toRedirect);
 		  for (size_t i = 0; i < arguments.size(); i++) {
 			  std::cout << arguments[i];
 			  if (i < arguments.size() - 1) {
@@ -255,7 +303,7 @@ int main() {
 
 	  // External program option
 	  else {
-		  std::vector<std::string> args = handlSingleQuotes(command);
+		  std::vector<std::string> args = handlQuotes(command);
 		  
 		  if (!args.empty()) {
 			  std::string exe_name = args[0];
