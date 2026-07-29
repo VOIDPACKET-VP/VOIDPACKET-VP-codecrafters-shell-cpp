@@ -8,8 +8,8 @@
 
 /// For Redirection section
 #include <fstream> 
-#include <cerrno>  // Required for errno
-#include <cstring> // Required for std::strerror
+#include <cerrno>  // for errno
+#include <cstring> // for std::strerror
 
 
 
@@ -63,15 +63,37 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 
 	pid_t pid = fork();
 	if (pid == 0) {
-		execv(pathToExe.c_str(), args.data()); // pathToExe.c_str() is the program name (added c_str() because it expects a char*) , args.data() converts the vector into a raw array pointer (char**)
+		if (hasRedirection && !redirectLocation.empty()) {
+			// 1. Fix the "No such file or directory" error by making parent directories
+			//std::filesystem::path p(redirectLocation);
+			//if (p.has_parent_path()) {
+			//	std::filesystem::create_directories(p.parent_path());
+			//}
 
+			// Open the file (Write Only, Create if missing, Truncate/Wipe if exists)
+			// Permissions: 0644 (Read/Write for owner, Read for others)
+			int fd = open(redirectLocation.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			if (fd < 0) {
+				std::perror("Failed to open redirection file");
+				std::exit(1);
+			}
+
+			// Duplicate fd to STDOUT (Redirect standard output to our file descriptor)
+			if (dup2(fd, STDOUT_FILENO) < 0) {
+				std::perror("dup2 failed");
+				std::exit(1);
+			}
+
+			// Close the original file descriptor descriptor since STDOUT now points to it
+			close(fd);
+		}
+
+		execv(pathToExe.c_str(), args.data());
 		std::perror("Exec failed");
 		std::exit(1);
-	} else if (pid > 0) {
-		wait(nullptr);
-	} else {
-		std::perror("0-Fork failed");
 	}
+	else if (pid > 0) wait(nullptr);
+	else std::perror("Fork failed");
 #endif
 }
 
@@ -219,48 +241,36 @@ int main() {
 	  // exit command
 	  if (command == "exit") terminate = false;
 
+
+	  /// Finding the ">" operator
+	  std::string redirectLocation = "";
+	  bool hasRedirection = false;
+	  size_t redirPos = command.find('>');
+	  if (redirPos != std::string::npos) {
+		  hasRedirection = true;
+		  std::string filePart = command.substr(redirPos + 1);
+		  command = command.substr(0, redirPos); // Keep only the command part
+
+		  // Clean up spaces from the filename
+		  size_t firstNonSpace = filePart.find_first_not_of(" \t");
+		  size_t lastNonSpace = filePart.find_last_not_of(" \t\r\n");
+		  if (firstNonSpace != std::string::npos && lastNonSpace != std::string::npos) {
+			  redirectLocation = filePart.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
+		  }
+	  }
+
+
 	  // echo command
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
-
-		  size_t redirPos = toPrint.find('>');
-
-		  if (redirPos != std::string::npos) {
-			  // what to redirect
-			  std::string toRedirect = toPrint.substr(0, redirPos);
-			  // where to redirect
-			  std::string redirectLocation = toPrint.substr(redirPos + 1);
-
-			  // 2. Clean up leading/trailing spaces from the text
-			  if (!toRedirect.empty() && toRedirect.back() == ' ') {
-				  toRedirect.pop_back();
+		  std::vector<std::string> arguments = handlQuotes(toPrint);
+		  for (size_t i = 0; i < arguments.size(); i++) {
+			  std::cout << arguments[i];
+			  if (i < arguments.size() - 1) {
+				  std::cout << " ";
 			  }
-
-			  // 3. Clean up spaces from the filename path
-			  // Remove leading spaces
-			  size_t firstNonSpace = redirectLocation.find_first_not_of(" ");
-			  if (firstNonSpace != std::string::npos) {
-				  redirectLocation = redirectLocation.substr(firstNonSpace);
-			  }
-			  // Remove trailing spaces
-			  size_t lastNonSpace = redirectLocation.find_last_not_of(" ");
-			  if (lastNonSpace != std::string::npos) {
-				  redirectLocation = redirectLocation.substr(0, lastNonSpace + 1);
-			  }
-
-			  redirect_output(redirectLocation, toRedirect);
 		  }
-		  else {
-			  std::vector<std::string> arguments = handlQuotes(toPrint);
-			  for (size_t i = 0; i < arguments.size(); i++) {
-				  std::cout << arguments[i];
-				  if (i < arguments.size() - 1) {
-					  std::cout << " ";
-				  }
-			  }
-			  std::cout << "\n";
-		  }
-		  
+		  std::cout << "\n";
 	  }
 
 	  // type command
