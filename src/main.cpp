@@ -44,8 +44,11 @@ RedirectionConfig extractOutputRedirection(std::vector<std::string>& arguments) 
 	if (it == arguments.end()) {
 		it = std::find(arguments.begin(), arguments.end(), "1>>");
 	}
-	if (it != arguments.end()) {
-		config.isAppend = true; 
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), "2>>");
+		if (it != arguments.end()) {
+			config.isStderr = true; // 2>> targets stderr!
+		}
 	}
 
 	// 2. Fallback to standard overwrite tokens if no append tokens were found
