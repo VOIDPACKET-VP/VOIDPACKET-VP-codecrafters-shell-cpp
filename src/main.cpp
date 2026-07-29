@@ -128,7 +128,7 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 				std::exit(1);
 			}
 
-			int targetFD = redir.isStderr ? STDERR_FILENO : STDOUT_FILENO
+			int targetFD = redir.isStderr ? STDERR_FILENO : STDOUT_FILENO;
 			// Duplicate fd to STDOUT or STDERR
 			if (dup2(fd, targetFD) < 0) {
 				std::perror("dup2 failed");
