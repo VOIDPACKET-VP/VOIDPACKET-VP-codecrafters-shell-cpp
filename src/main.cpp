@@ -105,16 +105,16 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 
 	pid_t pid = fork();
 	if (pid == 0) {
-		if (hasRedirection && !redirectLocation.empty()) {
+		if (redir.hasRedirection && !redir.redirectLocation.empty()) {
 			// create parent directories if not found
-			std::filesystem::path p(redirectLocation);
+			std::filesystem::path p(redir.redirectLocation);
 			if (p.has_parent_path()) {
 				std::filesystem::create_directories(p.parent_path());
 			}
 
 			// Open the file (Write Only, Create if missing, Truncate/Wipe if exists)
 			// Permissions: 0644 (Read/Write for owner, Read for others)
-			int fd = open(redirectLocation.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			int fd = open(redir.redirectLocation.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 			if (fd < 0) {
 				std::perror("Failed to open redirection file");
 				std::exit(1);
@@ -181,7 +181,6 @@ std::filesystem::path find_executable(const std::string& command_name, const cha
 	}
 	return pathToFile;
 }
-
 
 
 
