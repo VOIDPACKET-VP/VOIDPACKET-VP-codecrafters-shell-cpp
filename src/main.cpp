@@ -10,7 +10,7 @@
 /// For Redirection section
 #include <fcntl.h>    // For open, O_WRONLY, O_CREAT, O_TRUNC
 #include <unistd.h>   // For dup2, close
-
+#include <fstream>
 
 
 // For the processes : we need to know how to spawn on, differes between OS
@@ -22,9 +22,42 @@
 #endif
 
 
-/// For finding the > operator and redirection
-std::string redirectLocation = "";
-bool hasRedirection = false;
+#include <vector>
+#include <string>
+#include <algorithm>
+
+
+/// For the ">" and redirection etc.
+// struct to cleanly pass back the extracted redirection state
+struct RedirectionConfig {
+	bool hasRedirection = false;
+	std::string redirectLocation = "";
+};
+// Extracts redirection tokens and strips them from arguments 
+RedirectionConfig extractOutputRedirection(std::vector<std::string>& arguments) {
+	RedirectionConfig config;
+
+	// Search for '>' or fallback to '1>'
+	auto it = std::find(arguments.begin(), arguments.end(), ">");
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), "1>");
+	}
+
+	// If found, extract the destination and truncate the vector
+	if (it != arguments.end()) {
+		config.hasRedirection = true;
+
+		auto pathIt = it + 1;
+		if (pathIt != arguments.end()) {
+			config.redirectLocation = *pathIt;
+		}
+
+		// Remove the operator token and the filename so the command doesn't see them
+		arguments.erase(it, arguments.end());
+	}
+
+	return config;
+}
 
 
 
@@ -59,25 +92,9 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 	}
 
 #else 
+	// know the state of redirection
+	RedirectionConfig redir = extractOutputRedirection(arguments);
 
-	// Locating the ">" operator inside arguments
-	bool hasRedirection = false;
-	std::string redirectLocation = "";
-
-	// Locate EITHER the '>' or '1>' operator inside arguments
-	auto it = std::find(arguments.begin(), arguments.end(), ">");
-	if (it == arguments.end()) {
-		it = std::find(arguments.begin(), arguments.end(), "1>"); // Fallback check for 1>
-	}
-	if (it != arguments.end()) {
-		hasRedirection = true;
-		auto pathIt = it + 1; // The file path follows immediately after the '>' token
-		if (pathIt != arguments.end()) redirectLocation = *pathIt;
-
-		// we erase both the ">" and the filename from arguments
-		arguments.erase(it, arguments.end());
-	}
-	
 	// we need to convert to a vector of raw char* for execvp
 	std::vector<char*> args;
 
@@ -89,7 +106,7 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 	pid_t pid = fork();
 	if (pid == 0) {
 		if (hasRedirection && !redirectLocation.empty()) {
-			// 1. Fix the "No such file or directory" error by making parent directories
+			// create parent directories if not found
 			std::filesystem::path p(redirectLocation);
 			if (p.has_parent_path()) {
 				std::filesystem::create_directories(p.parent_path());
@@ -257,6 +274,29 @@ int main() {
 	  else if (command.find("echo ") == 0) {
 		  std::string toPrint = command.substr(5);
 		  std::vector<std::string> arguments = handlQuotes(toPrint);
+
+		  // Call the shared helper function
+		  RedirectionConfig redir = extractOutputRedirection(arguments);
+
+		  // Track original screen buffer to restore it later
+		  std::streambuf* oldCoutBuffer = std::cout.rdbuf();
+		  std::ofstream outFile;
+
+		  if (redir.hasRedirection && !redir.redirectLocation.empty()) {
+			  // Enforce parent directory creation for the target path
+			  std::filesystem::path p(redir.redirectLocation);
+			  if (p.has_parent_path()) {
+				  std::filesystem::create_directories(p.parent_path());
+			  }
+
+			  // Open file stream (Overwrites/Truncates existing files)
+			  outFile.open(redir.redirectLocation, std::ios::out | std::ios::trunc);
+			  if (outFile.is_open()) {
+				  std::cout.rdbuf(outFile.rdbuf()); // Swap cout target to the file
+			  }
+		  }
+
+		  // normal echo logic
 		  for (size_t i = 0; i < arguments.size(); i++) {
 			  std::cout << arguments[i];
 			  if (i < arguments.size() - 1) {
@@ -264,6 +304,12 @@ int main() {
 			  }
 		  }
 		  std::cout << "\n";
+
+		  // Clean up and restore terminal printing
+		  if (redir.hasRedirection && outFile.is_open()) {
+			  std::cout.rdbuf(oldCoutBuffer);
+			  outFile.close();
+		  }
 	  }
 
 	  // type command
