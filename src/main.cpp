@@ -286,8 +286,9 @@ int main() {
 		  // Call the shared helper function
 		  RedirectionConfig redir = extractOutputRedirection(arguments);
 
-		  // Track original screen buffer to restore it later
-		  std::streambuf* oldBuffer = nullptr;
+		  // set up tracking pointers for stream redirection
+		  std::streambuf* oldCoutBuffer = nullptr;
+		  std::streambuf* oldCerrBuffer = nullptr;
 		  std::ofstream outFile;
 
 		  if (redir.hasRedirection && !redir.redirectLocation.empty()) {
@@ -302,11 +303,11 @@ int main() {
 			  if (outFile.is_open()) {
 				  // Swap the correct stream buffer based on the flag
 				  if (redir.isStderr) {
-					  oldBuffer = std::cerr.rdbuf();
+					  oldCerrBuffer = std::cerr.rdbuf();
 					  std::cerr.rdbuf(outFile.rdbuf());
 				  }
 				  else {
-					  oldBuffer = std::cout.rdbuf();
+					  oldCoutBuffer = std::cout.rdbuf();
 					  std::cout.rdbuf(outFile.rdbuf());
 				  }
 			  }
@@ -314,21 +315,17 @@ int main() {
 
 		  // normal echo logic
 		  for (size_t i = 0; i < arguments.size(); i++) {
-			  if (redir.isStderr) std::cerr << arguments[i];
-			  else std::cout << arguments[i];
-
+			  std::cout << arguments[i];
 			  if (i < arguments.size() - 1) {
-				  if (redir.isStderr) std::cerr << " ";
-				  else std::cout << " ";
+				  std::cout << " ";
 			  }
 		  }
-		  if (redir.isStderr) std::cerr << "\n";
-		  else std::cout << "\n";
+		  std::cout << "\n";
 
 		  // Clean up and restore terminal printing
 		  if (redir.hasRedirection && outFile.is_open()) {
-			  if (redir.isStderr) std::cerr.rdbuf(oldBuffer);
-			  else std::cout.rdbuf(oldBuffer);
+			  if (redir.isStderr && oldCerrBuffer) std::cerr.rdbuf(oldCerrBuffer);
+			  else if (oldCoutBuffer) std::cout.rdbuf(oldCoutBuffer);
 			  outFile.close();
 		  }
 	  }
