@@ -137,8 +137,7 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 			}
 
 			// CHOOSE SYSTEM OPEN FLAGS: append or truncate
-			int openFlags = redir.isAppend ? (O_WRONLY | O_CREAT | O_APPEND)
-				: (O_WRONLY | O_CREAT | O_TRUNC);
+			int openFlags = redir.isAppend ? (O_WRONLY | O_CREAT | O_APPEND) : (O_WRONLY | O_CREAT | O_TRUNC);
 
 			int fd = open(redir.redirectLocation.c_str(), openFlags, 0644);
 			if (fd < 0) {
