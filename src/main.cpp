@@ -39,25 +39,29 @@ struct RedirectionConfig {
 RedirectionConfig extractOutputRedirection(std::vector<std::string>& arguments) {
 	RedirectionConfig config;
 
+	// Check for APPEND tokens FIRST so they don't get accidentally matched as > or 1>
 	auto it = std::find(arguments.begin(), arguments.end(), ">>");
 	if (it == arguments.end()) {
 		it = std::find(arguments.begin(), arguments.end(), "1>>");
 	}
 	if (it != arguments.end()) {
-		config.isAppend = true; // Mark as append mode!
+		config.isAppend = true; 
 	}
 
-	// Search for '>'
-	auto it = std::find(arguments.begin(), arguments.end(), ">");
-	// fallback to '1>'
+	// 2. Fallback to standard overwrite tokens if no append tokens were found
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), ">");
+	}
 	if (it == arguments.end()) {
 		it = std::find(arguments.begin(), arguments.end(), "1>");
 	}
 
-	// fallback to '2>'
+	// 3. Fallback to standard error token
 	if (it == arguments.end()) {
 		it = std::find(arguments.begin(), arguments.end(), "2>");
-		if (it != arguments.end()) config.isStderr = true;
+		if (it != arguments.end()) {
+			config.isStderr = true;
+		}
 	}
 
 	// If found, extract the destination and truncate the vector
