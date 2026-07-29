@@ -28,7 +28,7 @@ bool hasRedirection = false;
 
 
 
-void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& arguments) {
+void spawnProcess(const std::string& pathToExe, std::vector<std::string>& arguments) {
 #if defined(_WIN32)
 	STARTUPINFO si = { sizeof(si) };
 	PROCESS_INFORMATION pi;
