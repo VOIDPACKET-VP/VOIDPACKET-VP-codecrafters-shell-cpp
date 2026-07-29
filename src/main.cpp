@@ -24,6 +24,12 @@
 #endif
 
 
+/// For finding the > operator and redirection
+std::string redirectLocation = "";
+bool hasRedirection = false;
+
+
+
 void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& arguments) {
 #if defined(_WIN32)
 	STARTUPINFO si = { sizeof(si) };
@@ -245,8 +251,6 @@ int main() {
 
 
 	  /// Finding the ">" operator
-	  std::string redirectLocation = "";
-	  bool hasRedirection = false;
 	  size_t redirPos = command.find('>');
 	  if (redirPos != std::string::npos) {
 		  hasRedirection = true;
