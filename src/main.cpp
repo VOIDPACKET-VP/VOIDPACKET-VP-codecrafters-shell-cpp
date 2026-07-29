@@ -73,10 +73,10 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 	if (pid == 0) {
 		if (hasRedirection && !redirectLocation.empty()) {
 			// 1. Fix the "No such file or directory" error by making parent directories
-			//std::filesystem::path p(redirectLocation);
-			//if (p.has_parent_path()) {
-			//	std::filesystem::create_directories(p.parent_path());
-			//}
+			std::filesystem::path p(redirectLocation);
+			if (p.has_parent_path()) {
+				std::filesystem::create_directories(p.parent_path());
+			}
 
 			// Open the file (Write Only, Create if missing, Truncate/Wipe if exists)
 			// Permissions: 0644 (Read/Write for owner, Read for others)
