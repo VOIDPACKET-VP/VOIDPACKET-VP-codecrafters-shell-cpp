@@ -33,10 +33,19 @@ struct RedirectionConfig {
 	bool hasRedirection = false;
 	std::string redirectLocation = "";
 	bool isStderr = false;
+	bool isAppend = false;
 };
 // Extracts redirection tokens and strips them from arguments 
 RedirectionConfig extractOutputRedirection(std::vector<std::string>& arguments) {
 	RedirectionConfig config;
+
+	auto it = std::find(arguments.begin(), arguments.end(), ">>");
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), "1>>");
+	}
+	if (it != arguments.end()) {
+		config.isAppend = true; // Mark as append mode!
+	}
 
 	// Search for '>'
 	auto it = std::find(arguments.begin(), arguments.end(), ">");
@@ -120,9 +129,11 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 				std::filesystem::create_directories(p.parent_path());
 			}
 
-			// Open the file (Write Only, Create if missing, Truncate/Wipe if exists)
-			// Permissions: 0644 (Read/Write for owner, Read for others)
-			int fd = open(redir.redirectLocation.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			// CHOOSE SYSTEM OPEN FLAGS: append or truncate
+			int openFlags = redir.isAppend ? (O_WRONLY | O_CREAT | O_APPEND)
+				: (O_WRONLY | O_CREAT | O_TRUNC);
+
+			int fd = open(redir.redirectLocation.c_str(), openFlags, 0644);
 			if (fd < 0) {
 				std::perror("Failed to open redirection file");
 				std::exit(1);
@@ -298,8 +309,12 @@ int main() {
 				  std::filesystem::create_directories(p.parent_path());
 			  }
 
+			  // CHOOSE OPEN MODE: append or truncate
+			  auto openMode = redir.isAppend ? (std::ios::out | std::ios::app)
+				  : (std::ios::out | std::ios::trunc);
+
 			  // Open file stream (Overwrites/Truncates existing files)
-			  outFile.open(redir.redirectLocation, std::ios::out | std::ios::trunc);
+			  outFile.open(redir.redirectLocation, openMode);
 			  if (outFile.is_open()) {
 				  // Swap the correct stream buffer based on the flag
 				  if (redir.isStderr) {
