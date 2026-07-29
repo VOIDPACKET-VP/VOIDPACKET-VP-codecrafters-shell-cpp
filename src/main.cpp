@@ -10,6 +10,8 @@
 #include <fstream> 
 #include <cerrno>  // for errno
 #include <cstring> // for std::strerror
+#include <fcntl.h>    // For open, O_WRONLY, O_CREAT, O_TRUNC
+#include <unistd.h>   // For dup2, close
 
 
 
