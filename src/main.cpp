@@ -64,7 +64,11 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 	bool hasRedirection = false;
 	std::string redirectLocation = "";
 
+	// Locate EITHER the '>' or '1>' operator inside arguments
 	auto it = std::find(arguments.begin(), arguments.end(), ">");
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), "1>"); // Fallback check for 1>
+	}
 	if (it != arguments.end()) {
 		hasRedirection = true;
 		auto pathIt = it + 1; // The file path follows immediately after the '>' token
