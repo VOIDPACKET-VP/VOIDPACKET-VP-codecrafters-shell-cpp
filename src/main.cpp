@@ -32,15 +32,23 @@
 struct RedirectionConfig {
 	bool hasRedirection = false;
 	std::string redirectLocation = "";
+	bool isStderr = false;
 };
 // Extracts redirection tokens and strips them from arguments 
 RedirectionConfig extractOutputRedirection(std::vector<std::string>& arguments) {
 	RedirectionConfig config;
 
-	// Search for '>' or fallback to '1>'
+	// Search for '>'
 	auto it = std::find(arguments.begin(), arguments.end(), ">");
+	// fallback to '1>'
 	if (it == arguments.end()) {
 		it = std::find(arguments.begin(), arguments.end(), "1>");
+	}
+
+	// fallback to '2>'
+	if (it == arguments.end()) {
+		it = std::find(arguments.begin(), arguments.end(), "2>");
+		if (it != arguments.end()) config.isStderr = true;
 	}
 
 	// If found, extract the destination and truncate the vector
@@ -120,8 +128,9 @@ void spawnProcess(const std::string& pathToExe, std::vector<std::string>& argume
 				std::exit(1);
 			}
 
-			// Duplicate fd to STDOUT (Redirect standard output to our file descriptor)
-			if (dup2(fd, STDOUT_FILENO) < 0) {
+			int targetFD = redir.isStderr ? STDERR_FILENO : STDOUT_FILENO
+			// Duplicate fd to STDOUT or STDERR
+			if (dup2(fd, targetFD) < 0) {
 				std::perror("dup2 failed");
 				std::exit(1);
 			}
@@ -278,7 +287,7 @@ int main() {
 		  RedirectionConfig redir = extractOutputRedirection(arguments);
 
 		  // Track original screen buffer to restore it later
-		  std::streambuf* oldCoutBuffer = std::cout.rdbuf();
+		  std::streambuf* oldBuffer = nullptr;
 		  std::ofstream outFile;
 
 		  if (redir.hasRedirection && !redir.redirectLocation.empty()) {
@@ -291,22 +300,35 @@ int main() {
 			  // Open file stream (Overwrites/Truncates existing files)
 			  outFile.open(redir.redirectLocation, std::ios::out | std::ios::trunc);
 			  if (outFile.is_open()) {
-				  std::cout.rdbuf(outFile.rdbuf()); // Swap cout target to the file
+				  // Swap the correct stream buffer based on the flag
+				  if (redir.isStderr) {
+					  oldBuffer = std::cerr.rdbuf();
+					  std::cerr.rdbuf(outFile.rdbuf());
+				  }
+				  else {
+					  oldBuffer = std::cout.rdbuf();
+					  std::cout.rdbuf(outFile.rdbuf());
+				  }
 			  }
 		  }
 
 		  // normal echo logic
 		  for (size_t i = 0; i < arguments.size(); i++) {
-			  std::cout << arguments[i];
+			  if (redir.isStderr) std::cerr << arguments[i];
+			  else std::cout << arguments[i];
+
 			  if (i < arguments.size() - 1) {
-				  std::cout << " ";
+				  if (redir.isStderr) std::cerr << " ";
+				  else std::cout << " ";
 			  }
 		  }
-		  std::cout << "\n";
+		  if (redir.isStderr) std::cerr << "\n";
+		  else std::cout << "\n";
 
 		  // Clean up and restore terminal printing
 		  if (redir.hasRedirection && outFile.is_open()) {
-			  std::cout.rdbuf(oldCoutBuffer);
+			  if (redir.isStderr) std::cerr.rdbuf(oldBuffer);
+			  else std::cout.rdbuf(oldBuffer);
 			  outFile.close();
 		  }
 	  }
