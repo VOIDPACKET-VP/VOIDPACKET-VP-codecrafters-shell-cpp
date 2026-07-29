@@ -5,11 +5,9 @@
 #include <sstream> // for std::istringstream
 #include <vector>
 #include <stdlib.h>
+#include <algorithm> // for std::find
 
 /// For Redirection section
-#include <fstream> 
-#include <cerrno>  // for errno
-#include <cstring> // for std::strerror
 #include <fcntl.h>    // For open, O_WRONLY, O_CREAT, O_TRUNC
 #include <unistd.h>   // For dup2, close
 
@@ -61,6 +59,21 @@ void spawnProcess(const std::string& pathToExe, const std::vector<std::string>& 
 	}
 
 #else 
+
+	// Locating the ">" operator inside arguments
+	bool hasRedirection = false;
+	std::string redirectLocation = "";
+
+	auto it = std::find(arguments.begin(), arguments.end(), ">");
+	if (it != arguments.end()) {
+		hasRedirection = true;
+		auto pathIt = it + 1; // The file path follows immediately after the '>' token
+		if (pathIt != arguments.end()) redirectLocation = *pathIt;
+
+		// we erase both the ">" and the filename from arguments
+		arguments.erase(it, arguments.end());
+	}
+	
 	// we need to convert to a vector of raw char* for execvp
 	std::vector<char*> args;
 
@@ -213,19 +226,6 @@ std::vector<std::string> handlQuotes(std::string &toPrint) {
 	return arguments;
 }
 
-/// Redirection
-void redirect_output(const std::string& fileName, const std::string& text) {
-	std::ofstream outFile(fileName, std::ios::out);
-
-	if (outFile.is_open()) {
-		outFile << text << "\n";
-		outFile.close();
-	}
-	else {
-		std::cerr << "shell: " << fileName << ": " << std::strerror(errno) << std::endl;
-	}
-}
-
 
 
 int main() {
@@ -248,23 +248,6 @@ int main() {
 	  
 	  // exit command
 	  if (command == "exit") terminate = false;
-
-
-	  /// Finding the ">" operator
-	  size_t redirPos = command.find('>');
-	  if (redirPos != std::string::npos) {
-		  hasRedirection = true;
-		  std::string filePart = command.substr(redirPos + 1);
-		  command = command.substr(0, redirPos); // Keep only the command part
-
-		  // Clean up spaces from the filename
-		  size_t firstNonSpace = filePart.find_first_not_of(" \t");
-		  size_t lastNonSpace = filePart.find_last_not_of(" \t\r\n");
-		  if (firstNonSpace != std::string::npos && lastNonSpace != std::string::npos) {
-			  redirectLocation = filePart.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
-		  }
-	  }
-
 
 	  // echo command
 	  else if (command.find("echo ") == 0) {
